@@ -1,8 +1,6 @@
 package com.example.newsapp.di
 
 import com.example.newsapp.data.api.NewsApi
-import com.example.newsapp.data.repository.NewsRepository
-import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -33,8 +31,5 @@ object AppModule {
             .build()
             .create(NewsApi::class.java)
     }
-
-    @Provides
-    fun provideNewsRepository(newsApi: NewsApi): NewsRepository = NewsRepository(newsApi)
 
 }

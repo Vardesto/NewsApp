@@ -2,9 +2,9 @@ package com.example.newsapp.app.fragments
 
 import android.os.Bundle
 import android.util.Log
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.View
+import android.view.*
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -15,26 +15,32 @@ import com.example.newsapp.databinding.FragmentNewsListBinding
 import com.example.newsapp.viewmodels.newslist.DownloadState
 import com.example.newsapp.viewmodels.newslist.NewsListViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class NewsListFragment: Fragment(R.layout.fragment_news_list) {
 
     private var _binding: FragmentNewsListBinding? = null
     private val binding get() = _binding!!
-    @Inject
-    lateinit var adapter: NewsListAdapter
 
     private val newsListViewModel: NewsListViewModel by viewModels()
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        setHasOptionsMenu(true)
+        return super.onCreateView(inflater, container, savedInstanceState)
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentNewsListBinding.bind(view)
 
-        //val adapter = NewsListAdapter()
+        val adapter = NewsListAdapter(requireContext()) { newsListViewModel.updateNews() }
+
         binding.rvList.adapter = adapter
         binding.rvList.layoutManager = LinearLayoutManager(requireContext())
 
@@ -54,13 +60,54 @@ class NewsListFragment: Fragment(R.layout.fragment_news_list) {
                         binding.progressBar.visibility = View.VISIBLE
                         binding.rvList.visibility = View.GONE
                     }
+                    is DownloadState.SuccessAdd -> {
+                        adapter.addArticles(it.response.articles)
+                    }
                 }
             }
         }
+
+        binding.refresh.setOnRefreshListener {
+            newsListViewModel.updateNews()
+            binding.refresh.isRefreshing = false
+        }
+
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.menu_news_list, menu)
+        val searchView = (menu.findItem(R.id.search).actionView) as SearchView
+        searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener{
+
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                if (query != null && query != ""){
+                    (activity as AppCompatActivity).supportActionBar?.title = query
+                    newsListViewModel.getNewsEverything(query)
+                }
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                return false
+            }
+
+        })
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId){
+            R.id.country -> {
+                val dialog = CountrySelectDialog(newsListViewModel)
+                dialog.show(childFragmentManager, CountrySelectDialog.DIALOG_TAG)
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
 }
