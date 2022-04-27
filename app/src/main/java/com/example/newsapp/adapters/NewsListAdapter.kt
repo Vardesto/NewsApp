@@ -1,8 +1,11 @@
 package com.example.newsapp.adapters
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -49,6 +52,12 @@ class NewsListAdapter (private val context: Context, private val updateFun: () -
                 .fitCenter()
                 .apply(RequestOptions.bitmapTransform(RoundedCorners(30)))
                 .into(binding.image)
+            binding.root.setOnLongClickListener {
+                val uri = Uri.parse(article.url)
+                val urlIntent = Intent(Intent.ACTION_VIEW, uri)
+                context.startActivity(urlIntent)
+                true
+            }
         }
 
     }

@@ -79,7 +79,7 @@ class NewsListViewModel @Inject constructor(private val newsRepository: NewsRepo
     private fun addNewsTop(){
         currentPage++
         viewModelScope.launch {
-            val response = newsRepository.getNewsTop(country = country)
+            val response = newsRepository.getNewsTop(country = country, page = currentPage)
             if (response.isSuccessful){
                 if (response.body() != null){
                     _downloadState.value = DownloadState.SuccessAdd(response.body()!!)
@@ -104,6 +104,18 @@ class NewsListViewModel @Inject constructor(private val newsRepository: NewsRepo
                 }
             } else {
                 _downloadState.value = DownloadState.Error(response.errorBody().toString())
+            }
+        }
+    }
+
+    fun returnToTopNews(): Boolean{
+        return when(pageState){
+            is PageState.Top -> {
+                false
+            }
+            is PageState.Everything -> {
+                getNewsTop()
+                true
             }
         }
     }

@@ -1,8 +1,11 @@
 package com.example.newsapp.app.fragments
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
@@ -108,6 +111,19 @@ class NewsListFragment: Fragment(R.layout.fragment_news_list) {
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        val callback: OnBackPressedCallback = object : OnBackPressedCallback(true){
+            override fun handleOnBackPressed() {
+                if (newsListViewModel.returnToTopNews()){
+                    (activity as AppCompatActivity).supportActionBar?.title = getString(R.string.app_name)
+                }
+
+            }
+        }
+        activity?.onBackPressedDispatcher?.addCallback(this, callback)
     }
 
 }
